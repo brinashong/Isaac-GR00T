@@ -1,12 +1,13 @@
 set -x -e
 
-export NUM_GPUS=1
+export NUM_GPUS=4
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 
-# torchrun --nproc_per_node=$NUM_GPUS --master_port=29500 \
-CUDA_VISIBLE_DEVICES=0 python \
+# CUDA_VISIBLE_DEVICES=0 python \
+torchrun --nproc_per_node=$NUM_GPUS --master_port=29500 \
     gr00t/experiment/launch_finetune.py \
     --base_model_path nvidia/GR00T-N1.6-3B \
-    --dataset_path  examples/SO100/finish_sandwich_lerobot \
+    --dataset_path  examples/SO100/finish_sandwich_lerobot/izuluaga/finish_sandwich \
     --modality_config_path examples/SO100/so100_config.py \
     --embodiment_tag NEW_EMBODIMENT \
     --num_gpus $NUM_GPUS \
