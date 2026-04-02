@@ -116,3 +116,6 @@ class FinetuneConfig:
 
     num_shards_per_epoch: int = int(1e5)
     """Number of shards to use for the dataset. reduce this number if vram is limited."""
+
+    entity_name: str = None
+    experiment_name: str = None
