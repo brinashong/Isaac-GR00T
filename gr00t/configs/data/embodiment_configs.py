@@ -343,6 +343,82 @@ MODALITY_CONFIGS = {
             ],
         ),
     },
+    "new_embodiment": {
+      "video": ModalityConfig(
+        delta_indices=[0],
+        modality_keys=["color"] #, "depth"],
+      ),
+      "state": ModalityConfig(
+        delta_indices=[0],
+        modality_keys=[
+          "neck",
+          "left_arm",
+          "right_arm",
+          "waist",
+          "left_leg",
+          "right_leg",
+          "observation.velocity.neck",
+          "observation.velocity.left_arm",
+          "observation.velocity.right_arm",
+          "observation.velocity.waist",
+          "observation.velocity.left_leg",
+          "observation.velocity.right_leg",
+        ],
+      ),
+      "action": ModalityConfig(
+        delta_indices=list(range(0, 16)),
+        modality_keys=[
+          "neck",
+          "left_arm",
+          "right_arm",
+          "waist",
+          "left_leg",
+          "right_leg",
+          "is_done",
+        ],
+        action_configs=[
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+          ActionConfig(
+            rep=ActionRepresentation.ABSOLUTE,
+            type=ActionType.NON_EEF,
+            format=ActionFormat.DEFAULT,
+          ),
+        ],
+      ),
+      "language": ModalityConfig(
+        delta_indices=[0],
+        modality_keys=["annotation.human.action.task_description"],
+      ),
+    },
 }
 
 

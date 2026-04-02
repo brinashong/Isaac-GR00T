@@ -5,7 +5,7 @@ from gr00t.data.types import ModalityConfig, ActionConfig, ActionRepresentation,
 booster_config = {
   "video": ModalityConfig(
     delta_indices=[0],
-    modality_keys=["color"], #"depth"],
+    modality_keys=["color"] #, "depth"],
   ),
   "state": ModalityConfig(
     delta_indices=[0],
@@ -16,6 +16,12 @@ booster_config = {
       "waist",
       "left_leg",
       "right_leg",
+      "observation.velocity.neck",
+      "observation.velocity.left_arm",
+      "observation.velocity.right_arm",
+      "observation.velocity.waist",
+      "observation.velocity.left_leg",
+      "observation.velocity.right_leg",
     ],
   ),
   "action": ModalityConfig(
@@ -27,30 +33,36 @@ booster_config = {
       "waist",
       "left_leg",
       "right_leg",
+      "is_done",
     ],
     action_configs=[
       ActionConfig(
-        rep=ActionRepresentation.RELATIVE,
+        rep=ActionRepresentation.ABSOLUTE,
         type=ActionType.NON_EEF,
         format=ActionFormat.DEFAULT,
       ),
       ActionConfig(
-        rep=ActionRepresentation.RELATIVE,
+        rep=ActionRepresentation.ABSOLUTE,
         type=ActionType.NON_EEF,
         format=ActionFormat.DEFAULT,
       ),
       ActionConfig(
-        rep=ActionRepresentation.RELATIVE,
+        rep=ActionRepresentation.ABSOLUTE,
         type=ActionType.NON_EEF,
         format=ActionFormat.DEFAULT,
       ),
       ActionConfig(
-        rep=ActionRepresentation.RELATIVE,
+        rep=ActionRepresentation.ABSOLUTE,
         type=ActionType.NON_EEF,
         format=ActionFormat.DEFAULT,
       ),
       ActionConfig(
-        rep=ActionRepresentation.RELATIVE,
+        rep=ActionRepresentation.ABSOLUTE,
+        type=ActionType.NON_EEF,
+        format=ActionFormat.DEFAULT,
+      ),
+      ActionConfig(
+        rep=ActionRepresentation.ABSOLUTE,
         type=ActionType.NON_EEF,
         format=ActionFormat.DEFAULT,
       ),
@@ -67,4 +79,4 @@ booster_config = {
   ),
 }
 
-register_modality_config(booster_config, embodiment_tag=EmbodimentTag.NEW_EMBODIMENT)
+# register_modality_config(booster_config, embodiment_tag=EmbodimentTag.NEW_EMBODIMENT)
