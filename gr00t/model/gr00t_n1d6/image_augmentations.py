@@ -226,6 +226,9 @@ def build_image_transformations_albumentations(
         A.SmallestMaxSize(max_size=max_size, interpolation=cv2.INTER_AREA),
         FractionalRandomCrop(crop_fraction=fraction_to_use),
         A.SmallestMaxSize(max_size=max_size, interpolation=cv2.INTER_AREA),
+        # A.Resize(max_size, max_size),
+        # FractionalRandomCrop(crop_fraction=fraction_to_use),
+        # A.Resize(max_size, max_size),
     ]
 
     if random_rotation_angle is not None and random_rotation_angle != 0:
