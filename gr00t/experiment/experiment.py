@@ -161,6 +161,7 @@ def run(config: Config):
 
         wandb.init(
             project=config.training.wandb_project,
+            entity=config.training.entity_name,
             name=experiment_name,
             config=config_dict,
             tags=[config.data.mode],

@@ -83,7 +83,9 @@ if __name__ == "__main__":
     config.training.max_steps = ft_config.max_steps
     config.training.weight_decay = ft_config.weight_decay
     config.training.warmup_ratio = ft_config.warmup_ratio
-    config.training.wandb_project = "finetune-gr00t-n1d6"
+    config.training.wandb_project = "finetune-booster" #"finetune-gr00t-n1d6"
+    config.training.experiment_name = ft_config.experiment_name
+    config.training.entity_name = ft_config.entity_name
 
     config.data.shard_size = ft_config.shard_size
     config.data.episode_sampling_rate = ft_config.episode_sampling_rate
