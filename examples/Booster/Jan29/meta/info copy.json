@@ -1,0 +1,206 @@
+{
+    "codebase_version": "v2.1",
+    "robot_type": "booster_t1",
+    "fps": 50,
+    "total_episodes": 4,
+    "total_frames": 2234,
+    "total_tasks": 4,
+    "total_videos": 8,
+    "total_chunks": 1,
+    "chunks_size": 1000,
+    "data_path": "data/chunk-{episode_chunk:03d}/file-{episode_index:03d}.parquet",
+    "video_path": "videos/chunk-{episode_chunk:03d}/{video_key}/file-{episode_index:03d}.mp4",
+    "features": {
+        "timestamp": {
+            "dtype": "float32",
+            "shape": [
+                1
+            ],
+            "names": null
+        },
+        "observation.images.color": {
+            "dtype": "video",
+            "shape": [
+                720,
+                1280,
+                3
+            ],
+            "names": [
+                "height",
+                "width",
+                "channel"
+            ],
+            "info": {
+                "video.fps": 50.0,
+                "video.codec": "libx264",
+                "video.pix_fmt": "yuv420p",
+                "video.is_depth_map": false
+            }
+        },
+        "observation.images.depth": {
+            "dtype": "video",
+            "shape": [
+                480,
+                848,
+                3
+            ],
+            "names": [
+                "height",
+                "width",
+                "channel"
+            ],
+            "info": {
+                "video.fps": 50.0,
+                "video.codec": "ffv1",
+                "video.pix_fmt": "rgb24",
+                "video.is_depth_map": true
+            }
+        },
+        "observation.cameras.color_info": {
+            "dtype": "float32",
+            "shape": [
+                9
+            ],
+            "names": null
+        },
+        "observation.cameras.depth_info": {
+            "dtype": "float32",
+            "shape": [
+                9
+            ],
+            "names": null
+        },
+        "observation.state": {
+            "dtype": "float32",
+            "shape": [
+                29
+            ],
+            "names": [
+                "AAHead_yaw",
+                "Head_pitch",
+                "Left_Shoulder_Pitch",
+                "Left_Shoulder_Roll",
+                "Left_Elbow_Pitch",
+                "Left_Elbow_Yaw",
+                "Left_Wrist_Pitch",
+                "Left_Wrist_Yaw",
+                "Left_Hand_Roll",
+                "Right_Shoulder_Pitch",
+                "Right_Shoulder_Roll",
+                "Right_Elbow_Pitch",
+                "Right_Elbow_Yaw",
+                "Right_Wrist_Pitch",
+                "Right_Wrist_Yaw",
+                "Right_Hand_Roll",
+                "Waist",
+                "Left_Hip_Pitch",
+                "Left_Hip_Roll",
+                "Left_Hip_Yaw",
+                "Left_Knee_Pitch",
+                "Left_Ankle_Pitch",
+                "Left_Ankle_Roll",
+                "Right_Hip_Pitch",
+                "Right_Hip_Roll",
+                "Right_Hip_Yaw",
+                "Right_Knee_Pitch",
+                "Right_Ankle_Pitch",
+                "Right_Ankle_Roll"
+            ]
+        },
+        "action": {
+            "dtype": "float32",
+            "shape": [
+                29
+            ],
+            "names": [
+                "AAHead_yaw",
+                "Head_pitch",
+                "Left_Shoulder_Pitch",
+                "Left_Shoulder_Roll",
+                "Left_Elbow_Pitch",
+                "Left_Elbow_Yaw",
+                "Left_Wrist_Pitch",
+                "Left_Wrist_Yaw",
+                "Left_Hand_Roll",
+                "Right_Shoulder_Pitch",
+                "Right_Shoulder_Roll",
+                "Right_Elbow_Pitch",
+                "Right_Elbow_Yaw",
+                "Right_Wrist_Pitch",
+                "Right_Wrist_Yaw",
+                "Right_Hand_Roll",
+                "Waist",
+                "Left_Hip_Pitch",
+                "Left_Hip_Roll",
+                "Left_Hip_Yaw",
+                "Left_Knee_Pitch",
+                "Left_Ankle_Pitch",
+                "Left_Ankle_Roll",
+                "Right_Hip_Pitch",
+                "Right_Hip_Roll",
+                "Right_Hip_Yaw",
+                "Right_Knee_Pitch",
+                "Right_Ankle_Pitch",
+                "Right_Ankle_Roll"
+            ]
+        },
+        "observation.velocity": {
+            "dtype": "float32",
+            "shape": [
+                29
+            ],
+            "names": [
+                "AAHead_yaw",
+                "Head_pitch",
+                "Left_Shoulder_Pitch",
+                "Left_Shoulder_Roll",
+                "Left_Elbow_Pitch",
+                "Left_Elbow_Yaw",
+                "Left_Wrist_Pitch",
+                "Left_Wrist_Yaw",
+                "Left_Hand_Roll",
+                "Right_Shoulder_Pitch",
+                "Right_Shoulder_Roll",
+                "Right_Elbow_Pitch",
+                "Right_Elbow_Yaw",
+                "Right_Wrist_Pitch",
+                "Right_Wrist_Yaw",
+                "Right_Hand_Roll",
+                "Waist",
+                "Left_Hip_Pitch",
+                "Left_Hip_Roll",
+                "Left_Hip_Yaw",
+                "Left_Knee_Pitch",
+                "Left_Ankle_Pitch",
+                "Left_Ankle_Roll",
+                "Right_Hip_Pitch",
+                "Right_Hip_Roll",
+                "Right_Hip_Yaw",
+                "Right_Knee_Pitch",
+                "Right_Ankle_Pitch",
+                "Right_Ankle_Roll"
+            ]
+        },
+        "observation.head_rpy": {
+            "dtype": "float32",
+            "shape": [
+                3
+            ],
+            "names": null
+        },
+        "observation.imu": {
+            "dtype": "float32",
+            "shape": [
+                10
+            ],
+            "names": null
+        },
+        "observation.tf_pose": {
+            "dtype": "float32",
+            "shape": [
+                7
+            ],
+            "names": null
+        }
+    }
+}
