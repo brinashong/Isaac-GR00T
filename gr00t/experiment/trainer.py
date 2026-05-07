@@ -314,48 +314,155 @@ class Gr00tTrainer(Trainer):
         # torch.save(input_embeddings, f"input_embeddings_{self.state.global_step}.pt")
         # torch.save(output_embeddings, f"output_embeddings_{self.state.global_step}.pt")
 
+        # pred_actions = outputs['pred_actions']
+        # # action_mask = outputs['action_mask']
+        # gt_actions = inputs['inputs']["action"].to(device=pred_actions.device)
+        # input_action_mask = inputs['inputs']['action_mask'].to(pred_actions.device).float()
+        # H = gt_actions.shape[1]
+        # pred = pred_actions[:, :H, :]
+        # gt = gt_actions[:, :H, :]
+        # mask = input_action_mask[:, :H, :] # same as outputs['action_mask']
+        # valid = mask > 0
+        # if self.custom_args.use_stats_norm_scale:
+        #     # scale_pad = self.action_std.to(pred.device) # or use embodiment_id from inputs
+        #     scale = torch.ones((1, 1, pred.shape[-1]), device=pred.device, dtype=pred.dtype)
+        #     scale[..., :self.action_std.shape[-1]] = self.action_std.to(pred.device)
+        #     scale = scale.clamp(min=1e-2)
+        #     scale = torch.where(scale < 2e-2, 1.0, scale)
+        # else: # if not using scale from dataset stats.json, compute batch-wise scale
+        #     if valid.any():
+        #         den = mask.sum(dim=(0,1)).clamp_min(1e-6)
+        #         mean = (gt * mask).sum(dim=(0,1)) / den
+        #         var = (((gt - mean) ** 2) * mask).sum(dim=(0,1)) / den
+        #         scale = var.sqrt().clamp(min=1e-2).view(1,1,-1)
+        #         scale = torch.where(scale < 2e-2, 1.0, scale)
+        #     else:
+        #         scale = torch.ones((1, 1, pred.shape[-1]), device=pred.device, dtype=pred.dtype)
+
+        # ### DEBUG ###
+        # # print("scale_pad: ", scale)
+        # # print("len scale_pad: ", len(scale[0][0]))
+        # # print("shape scale_pad: ", len(scale.shape))
+
+        # ### Smoothness (L2)
+        # if pred.shape[1] > 1:
+        #     delta = (pred[:, 1:] - pred[:, :-1]) / scale
+        #     mask_delta = mask[:, 1:] * mask[:, :-1]
+        #     smoothness_loss = (delta ** 2 * mask_delta).sum() / (mask_delta.sum() + 1e-6)
+        # else:
+        #     smoothness_loss = torch.tensor(0.0, device=pred.device)
+
+        # ### Acceleration (L2)
+        # if pred.shape[1] > 2:
+        #     delta2 = (pred[:, 2:] - 2 * pred[:, 1:-1] + pred[:, :-2]) / scale
+        #     mask_delta2 = mask[:, 2:] * mask[:, 1:-1] * mask[:, :-2]
+        #     accel_loss = (delta2 ** 2 * mask_delta2).sum() / (mask_delta2.sum() + 1e-6)
+        # else:
+        #     accel_loss = torch.tensor(0.0, device=pred.device)
+
+        # ### Continuity
+        # # prev_action is last executed action, and not last predicted action
+        # mask0 = mask[:, 0, :]
+        # if self.custom_args.use_prev_action_conditioning:
+        #     if False: # self.custom_args.use_multi_embodiment: 
+        #     # TO-DO: cross-embodiment loss function compute, change index range to dynamic or as input (DO NOT HARDCODE)
+        #         prev_action = inputs['inputs']['state'][:, 0, 58:87].to(pred.device)
+        #         losses = []
+        #         for b in range(pred.shape[0]):
+        #             valid_idx = mask[b, 0].bool().nonzero(as_tuple=True)[0]
+        #             pred_b = pred[b, 0, valid_idx]
+        #             # match first k dims of prev_action
+        #             prev_target_b = prev_action[b][:pred_b.shape[0]]
+        #             losses.append(torch.nn.functional.mse_loss(pred_b, prev_target_b, reduction='mean'))
+        #         continuity_loss = torch.stack(losses).mean()
+
+        #     else: # single embodiment
+        #         # TO-DO: change index range to dynamic or as input (DO NOT HARDCODE)
+        #         prev_action = inputs['inputs']['state'][:, 0, 58:87].to(pred.device)
+        #         prev_action_pad = torch.zeros_like(pred[:, 0, :], dtype=pred.dtype)
+        #         prev_action_pad[:, :prev_action.shape[-1]] = prev_action
+        #         continuity_loss = (((pred[:, 0, :] - prev_action_pad) ** 2) * mask0).sum() / (mask0.sum() + 1e-6)
+        #         ### NOTE: the following line computing valid_idx ASSUMES that all samples in batch share the SAME embodiment mask! 
+        #         ## Which is meant for single embodiment OR dataloader able to group by embodiment 
+        #         # valid_idx = mask[0, 0].bool().nonzero(as_tuple=True)[0] 
+        #         # assert valid_idx.numel() == prev_action.shape[-1]
+        #         # pred_first_valid = pred[:, 0, valid_idx]
+        #         # continuity_loss = torch.nn.functional.mse_loss(pred_first_valid, prev_action)
+        # else:
+        #     continuity_loss = (((pred[:, 0, :] - gt[: , 0, :]) ** 2) * mask0).sum() / (mask0.sum() + 1e-6)
+
+
+        # # --------------------------------------------------------------
+        # # Accuracy calculation
+        # # --------------------------------------------------------------
+        # if (
+        #     self.state.global_step % self.args.logging_steps == 0
+        #     and model.training
+        #     and "action" in inputs['inputs']
+        # ):
+        #     with torch.no_grad():
+        #         metrics = _batch_error(pred, gt, mask)
+
+        #     log_dict = {
+        #         "l1_error": metrics["l1_error"].item(),
+        #         "mse_error": metrics["mse_error"].item(),
+        #         "delta_mean": metrics["delta_mean"].item(),
+        #         "delta_max": metrics["delta_max"].item(),
+        #         "delta_error": metrics["delta_error"].item(),
+        #         "base_loss": loss.item(), # loss computed from Transformer trainer class. Is this CrossEntropyLoss or L2 regression MSE loss? 
+        #         "smoothness_loss_weighted": (self.custom_args.lambda_smooth * smoothness_loss).item(),
+        #         "accel_loss_weighted": (self.custom_args.lambda_accel * accel_loss).item(),
+        #         "continuity_loss_weighted": (self.custom_args.lambda_continuity * continuity_loss).item(),
+        #     }
+
+        #     if self.args.local_rank in (-1, 0):
+        #         self.log(log_dict)
+
+        # total_loss = loss + self.custom_args.lambda_smooth * smoothness_loss + self.custom_args.lambda_accel * accel_loss + self.custom_args.lambda_continuity * continuity_loss
+        # self.loss = total_loss.detach().item()
+
+        # return (total_loss, outputs) if return_outputs else total_loss
+
+
         # Record last loss for testing purposes.
         self.loss = loss
 
-        # --------------------------------------------------------------
-        # Accuracy calculation
-        # --------------------------------------------------------------
         if (
-            self.state.global_step % self.args.logging_steps == 0
-            and model.training
-            and "labels" in inputs
+           self.state.global_step % self.args.logging_steps == 0
+           and model.training
+           and "labels" in inputs
         ):
-            if self.action_offset is not None:
-                preds = outputs.logits.detach()[:, :, self.action_offset :].argmax(dim=-1).cpu()
-            else:
-                preds = outputs.logits.detach().argmax(dim=-1).cpu()
-            with torch.no_grad():
-                acc_local = _batch_accuracy(
-                    preds, inputs["labels"].to(device=preds.device), self.action_offset
-                )
-            acc_tensor = torch.tensor(acc_local.item(), device=loss.device)
-            acc_mean = self._nested_gather(acc_tensor).mean().item()
+           if self.action_offset is not None:
+               preds = outputs.logits.detach()[:, :, self.action_offset :].argmax(dim=-1).cpu()
+           else:
+               preds = outputs.logits.detach().argmax(dim=-1).cpu()
+           with torch.no_grad():
+               acc_local = _batch_accuracy(
+                   preds, inputs["labels"].to(device=preds.device), self.action_offset
+               )
+           acc_tensor = torch.tensor(acc_local.item(), device=loss.device)
+           acc_mean = self._nested_gather(acc_tensor).mean().item()
 
-            if self.args.local_rank in (-1, 0):
-                self.log({"train_accuracy": acc_mean})
+           if self.args.local_rank in (-1, 0):
+               self.log({"train_accuracy": acc_mean})
 
-                # Log a sample of ground-truth vs predicted action tokens from
-                # the first batch element so users can verify the model is
-                # learning the right behaviors.
-                shifted_labels = inputs["labels"][:1, 1:].cpu()
-                shifted_preds = preds[:1, :-1]
-                mask_0 = shifted_labels[0] != -100
-                gt_tokens = shifted_labels[0][mask_0][:20]
-                if self.action_offset is not None:
-                    gt_tokens = gt_tokens - self.action_offset
-                gt_sample = gt_tokens.tolist()
-                pred_sample = shifted_preds[0][mask_0[: shifted_preds.shape[1]]][:20].tolist()
-                logging.info(
-                    "Step %d — GT vs Pred (first 20 action tokens, batch[0]):\n"
-                    "  GT:   %s\n  Pred: %s",
-                    self.state.global_step,
-                    gt_sample,
-                    pred_sample,
-                )
+               # Log a sample of ground-truth vs predicted action tokens from
+               # the first batch element so users can verify the model is
+               # learning the right behaviors.
+               shifted_labels = inputs["labels"][:1, 1:].cpu()
+               shifted_preds = preds[:1, :-1]
+               mask_0 = shifted_labels[0] != -100
+               gt_tokens = shifted_labels[0][mask_0][:20]
+               if self.action_offset is not None:
+                   gt_tokens = gt_tokens - self.action_offset
+               gt_sample = gt_tokens.tolist()
+               pred_sample = shifted_preds[0][mask_0[: shifted_preds.shape[1]]][:20].tolist()
+               logging.info(
+                   "Step %d — GT vs Pred (first 20 action tokens, batch[0]):\n"
+                   "  GT:   %s\n  Pred: %s",
+                   self.state.global_step,
+                   gt_sample,
+                   pred_sample,
+               )
 
         return (loss, outputs) if return_outputs else loss

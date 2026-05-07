@@ -107,6 +107,7 @@ if __name__ == "__main__":
     config.training.weight_decay = ft_config.weight_decay
     config.training.warmup_ratio = ft_config.warmup_ratio
     config.training.wandb_project = ft_config.wandb_project
+    config.training.entity_name = ft_config.entity_name
 
     config.data.shard_size = ft_config.shard_size
     config.data.episode_sampling_rate = ft_config.episode_sampling_rate

@@ -269,6 +269,7 @@ class Gr00tN1d7ActionHead(nn.Module):
             "action_mask": action_mask,
             "backbone_features": vl_embeds,
             "state_features": state_features,
+            "pred_actions": pred_actions,
         }
 
     def _encode_features(
