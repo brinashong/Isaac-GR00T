@@ -106,6 +106,14 @@ if __name__ == "__main__":
     config.training.max_steps = ft_config.max_steps
     config.training.weight_decay = ft_config.weight_decay
     config.training.warmup_ratio = ft_config.warmup_ratio
+    config.training.lambda_smooth = ft_config.lambda_smooth
+    config.training.lambda_accel = ft_config.lambda_accel
+    config.training.lambda_continuity = ft_config.lambda_continuity
+    config.training.use_prev_action_conditioning = ft_config.use_prev_action_conditioning
+    config.training.use_stats_norm_scale = ft_config.use_stats_norm_scale
+    config.training.entity_name = ft_config.entity_name
+    config.training.embodiment_tag = ft_config.embodiment_tag
+
     config.training.wandb_project = ft_config.wandb_project
     config.training.entity_name = ft_config.entity_name
 

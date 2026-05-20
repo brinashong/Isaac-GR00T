@@ -2,7 +2,7 @@ set -x -e
 
 export DATASET_PATH=examples/Booster/wave # meet-and-greet
 export OUTPUT_DIR=/mnt/ssd-server/eai_dataset/groot_models/wave-n1d7
-export EXPERIMENT_NAME=exp56-wave-relative-action-vanilla-7May
+export EXPERIMENT_NAME=exp58-wave-absolute-action-tune-loss-20May
 export WANDB_ENTITY="groot-sde"
 
 export NUM_GPUS=1
@@ -25,6 +25,10 @@ python3 \
     --warmup_ratio 0.05 \
     --weight_decay 1e-5 \
     --learning_rate 1e-4 \
+    --lambda_smooth 5e-3 \
+    --lambda_accel 0.0 \
+    --lambda_continuity 5e-3 \
+    --use_stats_norm_scale \
     --use_wandb \
     --episode_sampling_rate 1.0 \
     --num_shards_per_epoch 20 \

@@ -270,6 +270,8 @@ class Gr00tN1d7ActionHead(nn.Module):
             "backbone_features": vl_embeds,
             "state_features": state_features,
             "pred_actions": pred_actions,
+            "noisy_trajectory": noisy_trajectory,
+            "t_cont": t[:, 0, 0].detach(),
         }
 
     def _encode_features(

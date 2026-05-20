@@ -35,6 +35,8 @@ from gr00t.experiment.utils import BestMetricCheckpointCallback, CheckpointForma
 from gr00t.model import MODEL_REGISTRY
 from gr00t.utils.initial_actions import INITIAL_ACTIONS_FILENAME, save_initial_actions
 
+from gr00t.configs.training.training_config import CustomTrainingArgument
+
 
 def setup_logging(debug: bool = False):
     """Configure logging."""
@@ -194,6 +196,17 @@ def run(config: Config):
     processor = pipeline.return_processor()
     processor.save_pretrained(processor_dir)
 
+    ### YC addition 22 Apr 2026: use stats for normalization computation using scale in loss
+    try:
+        stats = pipeline.return_stats()
+        ## TO-DO: handle different embodiments stats.json here and in feeding into trainer.py
+        embodiment_tag_list = []
+        for embodiment_tag in stats.keys():
+            embodiment_tag_list.append(embodiment_tag)
+    except:
+        stats = None
+        logging.info("Stats not able to load. Please check if your model setup.py returns stats.")
+
     # deepspeed config
     if config.training.num_gpus > 1 and not config.training.use_ddp:
         deepspeed_config = config.get_deepspeed_config()
@@ -240,6 +253,16 @@ def run(config: Config):
         ignore_data_skip=True,
     )
 
+    custom_training_args = CustomTrainingArgument(
+        lambda_smooth = config.training.lambda_smooth,
+        lambda_accel = config.training.lambda_accel,
+        lambda_continuity = config.training.lambda_continuity,
+        use_prev_action_conditioning = config.training.use_prev_action_conditioning,
+        use_stats_norm_scale = config.training.use_stats_norm_scale,
+        stats = stats,
+        embodiment_tag_list = embodiment_tag_list,
+    )
+
     # Create trainer
     trainer = Gr00tTrainer(
         model=model,
@@ -248,6 +271,7 @@ def run(config: Config):
         eval_dataset=eval_dataset,
         data_collator=data_collator,
         multiprocessing_context=config.data.multiprocessing_context,
+        custom_args=custom_training_args,
     )
 
     trainer.add_callback(

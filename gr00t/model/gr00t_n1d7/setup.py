@@ -72,8 +72,12 @@ class Gr00tN1d7Pipeline(ModelPipeline):
 
     def setup(self):
         self.model = self._create_model()
+        self.stats_dict = None
         self.train_dataset, self.eval_dataset = self._create_dataset(self.save_cfg_dir)
         self.data_collator = self._create_collator()
+
+    def return_stats(self):
+        return self.stats_dict
 
     def _create_model(self):
         """Setup model with proper vocabulary expansion."""
@@ -220,10 +224,10 @@ class Gr00tN1d7Pipeline(ModelPipeline):
 
         # Save dataset statistics for inference
         stats = train_dataset.get_dataset_statistics()
-        stats_dict = convert_tensors_to_lists(stats)
+        self.stats_dict = convert_tensors_to_lists(stats)
         # Save statistics
         with open(save_cfg_dir / "dataset_statistics.json", "w") as f:
-            json.dump(stats_dict, f, indent=2)
+            json.dump(self.stats_dict, f, indent=2)
         logging.info("Saved dataset statistics for inference")
 
         return train_dataset, eval_dataset

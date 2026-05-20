@@ -39,6 +39,12 @@ class TrainingConfig:
     warmup_steps: int = 0  # this will override warmup_ratio
     max_grad_norm: float = 1.0
 
+    # Loss function tracking
+    lambda_smooth: float     = 1e-3 # Tune this to reduce sudden motion by checking the velocity
+    lambda_accel: float      = 1e-4 # Tune this to reduce jerky motion by checking the acceleration
+    lambda_continuity: float = 0.1  # Tune this to ensure continuity between action chunks
+    use_prev_action_conditioning: bool = False # Set to true to compute continuity loss between action chunks, else compute based on ground truth
+
     # Optimizer choice (huggingface TrainingArguments.optim)
     # Options include: 'adamw_torch', 'adamw_torch_fused', 'paged_adamw_32bit',
     # 'paged_adamw_8bit' (requires bitsandbytes), 'adafactor', etc.
@@ -70,6 +76,7 @@ class TrainingConfig:
 
     # Evaluation
     eval_strategy: str = "no"  # no, steps, epoch
+    eval_dataset_path: str | None = "/root/Isaac-GR00T/examples/Booster/wave"
     eval_steps: int = 500
     eval_set_split_ratio: float = 0.1
     eval_batch_size: int = 2
@@ -125,3 +132,19 @@ class TrainingConfig:
 
     open_loop_eval_plot_indices: Optional[list[int]] = None
     """List of action indices to plot. If None, plots all indices."""
+
+
+@dataclass
+class CustomTrainingArgument:
+    """Add on custom training arguments for loading into GR00T trainer pipeline."""
+    
+    # Loss function tracking
+    lambda_smooth: float     = 1e-3 # Tune this to reduce sudden motion by checking the velocity
+    lambda_accel: float      = 1e-4 # Tune this to reduce jerky motion by checking the acceleration
+    lambda_continuity: float = 0.1  # Tune this to ensure continuity between action chunks
+    use_prev_action_conditioning: bool = False # Set to true to compute continuity loss between action chunks, else compute based on ground truth
+    use_stats_norm_scale: bool = False  # Set to true to load stats.json from dataset for use in scale computation for normalization
+    stats: dict = None                  # For storing stats from dataset
+    embodiment_tag_list: list = None    # For storing embodiment names for accessing respective stats.json
+
+    

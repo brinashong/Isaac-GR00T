@@ -111,6 +111,22 @@ class FinetuneConfig:
     gradient_accumulation_steps: int = 1
     """Number of forward passes to accumulate before performing a backward/update step."""
 
+    # Loss function tracking
+    lambda_smooth: float     = 1e-3 
+    """Tune weight for loss function to reduce sudden motion by checking the velocity"""
+    
+    lambda_accel: float      = 1e-4 
+    """Tune weight for loss function to reduce jerky motion by checking the acceleration"""
+    
+    lambda_continuity: float = 0.1  
+    """Tune weight for loss function to ensure continuity between action chunks"""
+
+    use_prev_action_conditioning: bool = False
+    """# Compute continuity loss between action chunks, else compute based on ground truth"""
+
+    use_stats_norm_scale: bool = False
+    """# To load stats.json from dataset for use in scale computation for normalization, else use batch-level scaling for normalization"""
+
     output_dir: str = "./outputs"
     """Directory where model checkpoints, logs, and outputs are saved."""
 
