@@ -428,13 +428,13 @@ class Gr00tTrainer(Trainer):
         t_broadcast = t_cont[:, None, None]
         # Reconstruct predicted clean actions via one-step flow ODE
         #    x_1_pred = x_t + (1 - t) * v_pred
-        pred_clean = noisy_trajectory + (1.0 - t_broadcast) * pred_actions # linear flow matching
+        pred_clean = noisy_trajectory + (1.0 - t_broadcast) * pred_actions # linear flow matching. Model's estimate of clean actions this step. [B, H, action_dim]
         action_mask = outputs['action_mask']
 
         gt_actions = inputs['inputs']["action"].to(device=pred_actions.device)
         input_action_mask = inputs['inputs']['action_mask'].to(pred_actions.device).float()
         H = min(gt_actions.shape[1], pred_clean.shape[1])
-        pred = pred_actions[:, :H, :]
+        pred = pred_clean[:, :H, :]
         gt = gt_actions[:, :H, :]
         mask = input_action_mask[:, :H, :] # same as outputs['action_mask']
         valid = mask > 0
