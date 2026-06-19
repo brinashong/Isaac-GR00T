@@ -56,20 +56,43 @@ if __name__ == "__main__":
     if ft_config.modality_config_path is not None:
         load_modality_config(ft_config.modality_config_path)
 
-    config = get_default_config().load_dict(
-        {
+    data = {
             "data": {
                 "download_cache": False,
                 "datasets": [
-                    {
-                        "dataset_paths": [ft_config.dataset_path],
-                        "mix_ratio": 1.0,
-                        "embodiment_tag": embodiment_tag,
-                    }
+                    # {
+                    #     "dataset_paths": [ft_config.dataset_path],
+                    #     "mix_ratio": 1.0,
+                    #     "embodiment_tag": embodiment_tag,
+                    # }
                 ],
             }
         }
-    )
+
+    dataset_paths = ft_config.dataset_path.split(",")
+    for dataset_path in dataset_paths:
+        data['data']['datasets'].append({
+                                "dataset_paths": [dataset_path],
+                                "mix_ratio": 1.0,
+                                "embodiment_tag": embodiment_tag,
+            })
+
+    config = get_default_config().load_dict(data)
+
+    # config = get_default_config().load_dict(
+    #     {
+    #         "data": {
+    #             "download_cache": False,
+    #             "datasets": [
+    #                 {
+    #                     "dataset_paths": [ft_config.dataset_path],
+    #                     "mix_ratio": 1.0,
+    #                     "embodiment_tag": embodiment_tag,
+    #                 }
+    #             ],
+    #         }
+    #     }
+    # )
     config.load_config_path = None
 
     # overwrite with finetune config supplied by the user

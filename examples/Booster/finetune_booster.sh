@@ -1,12 +1,12 @@
 set -x -e
 
-export DATASET_PATH=examples/Booster/meet-and-greet_filter-jvel-jtau_50Hz_4Jun # meet-and-greet
+export DATASET_PATH=examples/Booster/meet-and-greet_50Hz_4Jun # meet-and-greet
 export OUTPUT_DIR=/mnt/ssd-server/eai_dataset/groot_models/wave-n1d7
-export EXPERIMENT_NAME=exp10-meet-and-greet-absolute-action-conditioning-tune-loss-50Hz-17Jun
+export EXPERIMENT_NAME=exp16-meet-and-greet-absolute-action-vanilla-50Hz-20Jun
 export WANDB_ENTITY="groot-sde"
 
 export NUM_GPUS=1
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=0
 
 # CUDA_VISIBLE_DEVICES=2 python3 \
 #--base_model_path /mnt/ssd-server/eai_dataset/groot_models/meet-and-greet/exp36-meet-and-greet/checkpoint-20000 \
@@ -22,14 +22,13 @@ python3 \
     --save_steps 2000 \
     --save_total_limit 20 \
     --max_steps 50000 \
-    --warmup_ratio 0.05 \
-    --weight_decay 1e-5 \
-    --learning_rate 1e-4 \
-    --lambda_smooth 5e-3 \
+    --warmup_ratio 0.02 \
+    --weight_decay 1e-4 \
+    --learning_rate 5e-5 \
+    --lambda_smooth 0.0 \
     --lambda_accel 0.0 \
-    --lambda_continuity 5e-3 \
+    --lambda_continuity 0.0 \
     --use_stats_norm_scale \
-    --use_prev_action_conditioning \
     --use_wandb \
     --episode_sampling_rate 1.0 \
     --state_dropout_prob 0.2 \
