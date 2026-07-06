@@ -70,8 +70,9 @@ def extract_step_data(
     assert len(language_data) == 1, f"Expected 1 language, got {len(language_data)}"
     text = language_data[list(language_data.keys())[0]][0]
 
-    variants = paraphrase_gazette.get(text, [text])
-    text = variants[np.random.randint(len(variants))]
+    if paraphrase_gazette:
+        variants = paraphrase_gazette.get(text, [text])
+        text = variants[np.random.randint(len(variants))]
 
     vla_step_data = VLAStepData(
         images=video_data,
@@ -144,8 +145,11 @@ class ShardedSingleStepDataset(ShardedDataset):
         episode_sampling_rate: float = 0.1,
         seed: int = 42,
         allow_padding: bool = False,
+        paraphrase_from_gazette: bool = False,
         paraphrase_gazette: dict[str, list[str]] | None = None,
         primary_tasks: list[str] | None = None,
+        canonicalize_list: dict[str, str] | None = None,
+        task_based_stratified_sampled_shards: bool = False,
     ):
         """Initialize single-step dataset with sharding configuration."""
         super().__init__(dataset_path)
@@ -157,12 +161,18 @@ class ShardedSingleStepDataset(ShardedDataset):
         self.episode_sampling_rate = episode_sampling_rate
         self.seed = seed
         self.allow_padding = allow_padding
-        self.paraphrase_gazette = paraphrase_gazette
-        if self.paraphrase_gazette: 
+        self.paraphrase_from_gazette = paraphrase_from_gazette
+        if self.paraphrase_from_gazette:
+            self.paraphrase_gazette = paraphrase_gazette
             print("Initialized gazette to paraphrase task instructions input.")
         else:
+            self.paraphrase_gazette = None
             print("No additional paraphrasing step for text extraction.")
         self.primary_tasks = primary_tasks
+        self.canonicalize_list = canonicalize_list
+        self.task_based_stratified_sampled_shards = task_based_stratified_sampled_shards
+        if self.task_based_stratified_sampled_shards:
+            print("Using task-aware stratified sampling for sharding dataset.")
         self.processor = None
         self.rng = np.random.default_rng(seed)
         action_delta_indices = modality_configs["action"].delta_indices
@@ -193,34 +203,99 @@ class ShardedSingleStepDataset(ShardedDataset):
         - Diversity within shards (mix of episodes and timesteps)
         - Reproducible sharding based on seed
         """
-        shuffled_episode_indices = self.rng.permutation(len(self.episode_loader.episode_lengths))
-        num_splits = int(1 / self.episode_sampling_rate)
+        if self.task_based_stratified_sampled_shards:
+            # List of task label for all episodes (read from meta/episodes.jsonl using lerobot_episode_loader.py)
+            episode_tasks = []  
+            for ep_meta in self.episode_loader.episodes_metadata: # To access tasks: [0]["tasks"]
+                overlap = list(set(ep_meta["tasks"]) & set(self.primary_tasks))
+                if len(overlap) == 1:    
+                    episode_tasks.append(overlap[0])   # list[str], len = num_episodes
+                elif len(overlap) == 0:    
+                    episode_tasks.append("Idle")       # Not specified as primary tasks
+                elif len(overlap) > 1:
+                    canonized_tasks = [self.canonicalize_list.get(t, t) for t in ep_meta["tasks"]]
+                    _overlap = list(set(canonized_tasks) & set(self.primary_tasks))
+                    if len(_overlap) == 1:    
+                        episode_tasks.append(_overlap[0])
+                    elif len(_overlap) == 0:    
+                        episode_tasks.append("Idle")
+                    elif len(_overlap) > 1:
+                        episode_tasks.append(self.rng.choice(canonized_tasks))
 
-        assert len(shuffled_episode_indices) > 0, (
-            f"No valid trajectories found for dataset {self.dataset_path}"
-        )
+            shuffled_episode_indices = self.rng.permutation(len(self.episode_loader.episode_lengths))
+            num_splits = int(1 / self.episode_sampling_rate)
 
-        # Calculate total timesteps and required number of shards
-        total_steps = np.sum(
-            [self.get_effective_episode_length(idx) for idx in shuffled_episode_indices]
-        ).astype(int)
-        num_shards = np.ceil(total_steps / self.shard_size).astype(int)
+            # Build sub-sequences tagged with task
+            episode_splits = []
+            total_steps = 0
+            for ep_idx in shuffled_episode_indices:
+                step_indices = np.arange(0, self.get_effective_episode_length(ep_idx))
+                self.rng.shuffle(step_indices)
+                total_steps += len(step_indices)
+                for i in range(num_splits):
+                    split = step_indices[i::num_splits]
+                    if len(split) > 0:
+                        episode_splits.append((ep_idx, split, episode_tasks[ep_idx]))
 
-        # Initialize shard containers
-        sharded_episodes = [[] for _ in range(num_shards)]
-        shard_lengths = np.zeros(num_shards, dtype=int)
+            num_shards = min(int(np.ceil(total_steps / self.shard_size)), len(episode_splits))
+            sharded_episodes = [[] for _ in range(num_shards)]
+            shard_lengths = np.zeros(num_shards, dtype=int)
+            
+            # Per-(shard, task) step counts for stratified greedy assignment
+            tasks = sorted(set(episode_tasks))
+            task_id = {t: i for i, t in enumerate(tasks)}
+            shard_task_lengths = np.zeros((num_shards, len(tasks)), dtype=int)
 
-        # Distribute episode sub-sequences across shards
-        for ep_idx in shuffled_episode_indices:
-            # Split episode timesteps into multiple sub-sequences
-            step_indices = np.arange(0, self.get_effective_episode_length(ep_idx))
-            self.rng.shuffle(step_indices)
-            for i in range(num_splits):
-                split_step_indices = step_indices[i::num_splits]
-                # Assign to shard with minimum current length (greedy balancing)
-                shard_index = np.argmin(shard_lengths)
-                sharded_episodes[shard_index].append((ep_idx, split_step_indices))
-                shard_lengths[shard_index] += len(split_step_indices)
+            # Interleave tasks by round-robin over per-task queues so assignment order alternates tasks
+            # Even so, ratio of dataset will be maintained, the later interweaving runs out of x tasks which occurred less frequently
+            from collections import deque
+            queues = {t: deque(s for s in episode_splits if s[2] == t) for t in tasks}
+            ordered = []
+            while any(queues.values()):
+                for t in tasks:
+                    if queues[t]:
+                        ordered.append(queues[t].popleft())
+
+            for i, (ep_idx, split, task) in enumerate(ordered):
+                if i < num_shards:
+                    shard_index = i  # keep the non-empty-shard guarantee
+                else:
+                    # assign to the shard with the LEAST of this task (tie-break by total size)
+                    j = task_id[task]
+                    shard_index = np.lexsort((shard_lengths, shard_task_lengths[:, j]))[0]
+                sharded_episodes[shard_index].append((ep_idx, split))
+                shard_lengths[shard_index] += len(split)
+                shard_task_lengths[shard_index, task_id[task]] += len(split)
+
+        else: # default
+            shuffled_episode_indices = self.rng.permutation(len(self.episode_loader.episode_lengths))
+            num_splits = int(1 / self.episode_sampling_rate)
+
+            assert len(shuffled_episode_indices) > 0, (
+                f"No valid trajectories found for dataset {self.dataset_path}"
+            )
+
+            # Calculate total timesteps and required number of shards
+            total_steps = np.sum(
+                [self.get_effective_episode_length(idx) for idx in shuffled_episode_indices]
+            ).astype(int)
+            num_shards = np.ceil(total_steps / self.shard_size).astype(int)
+
+            # Initialize shard containers
+            sharded_episodes = [[] for _ in range(num_shards)]
+            shard_lengths = np.zeros(num_shards, dtype=int)
+
+            # Distribute episode sub-sequences across shards
+            for ep_idx in shuffled_episode_indices:
+                # Split episode timesteps into multiple sub-sequences
+                step_indices = np.arange(0, self.get_effective_episode_length(ep_idx))
+                self.rng.shuffle(step_indices)
+                for i in range(num_splits):
+                    split_step_indices = step_indices[i::num_splits]
+                    # Assign to shard with minimum current length (greedy balancing)
+                    shard_index = np.argmin(shard_lengths)
+                    sharded_episodes[shard_index].append((ep_idx, split_step_indices))
+                    shard_lengths[shard_index] += len(split_step_indices)
 
         # Validate shard creation
         assert all(shard_lengths[i] > 0 for i in range(num_shards)), (

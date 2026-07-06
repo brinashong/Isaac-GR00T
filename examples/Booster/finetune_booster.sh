@@ -1,12 +1,12 @@
 set -x -e
 
-export DATASET_PATH=examples/Booster/meet-and-greet_50Hz_4Jun # meet-and-greet
+export DATASET_PATH="examples/Booster/meet-and-greet_50Hz_4Jun,examples/Booster/meet-and-greet_1600eps_sim_50Hz_19Jun" # meet-and-greet
 export OUTPUT_DIR=/mnt/ssd-server/eai_dataset/groot_models/wave-n1d7
-export EXPERIMENT_NAME=exp16-meet-and-greet-absolute-action-vanilla-50Hz-20Jun
+export EXPERIMENT_NAME=exp18-meet-and-greet-absolute-action-conditioning-tune-loss-50Hz-6Jul
 export WANDB_ENTITY="groot-sde"
 
 export NUM_GPUS=1
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
 
 # CUDA_VISIBLE_DEVICES=2 python3 \
 #--base_model_path /mnt/ssd-server/eai_dataset/groot_models/meet-and-greet/exp36-meet-and-greet/checkpoint-20000 \
@@ -21,17 +21,21 @@ python3 \
     --output_dir $OUTPUT_DIR \
     --save_steps 2000 \
     --save_total_limit 20 \
-    --max_steps 50000 \
+    --max_steps 60000 \
     --warmup_ratio 0.02 \
-    --weight_decay 1e-4 \
-    --learning_rate 5e-5 \
-    --lambda_smooth 0.0 \
+    --weight_decay 1e-5 \
+    --learning_rate 4e-5 \
+    --lambda_smooth 5e-3 \
     --lambda_accel 0.0 \
-    --lambda_continuity 0.0 \
+    --lambda_continuity 5e-3 \
     --use_stats_norm_scale \
+    --use_prev_action_conditioning \
+    --paraphrase_from_gazette \
+    --gazette_path examples/Booster/paraphrase_gazette.yaml \
+    --task_based_stratified_sampled_shards \
     --use_wandb \
-    --episode_sampling_rate 1.0 \
-    --state_dropout_prob 0.2 \
+    --episode_sampling_rate 0.05 \
+    --state_dropout_prob 0.5 \
     --num_shards_per_epoch 20 \
     --shard_size 512 \
     --entity_name $WANDB_ENTITY \
@@ -41,3 +45,6 @@ python3 \
     --dataloader_num_workers 4
 
     # --use_prev_action_conditioning \
+    # --paraphrase_from_gazette \
+    # --gazette_path examples/Booster/paraphrase_gazette.yaml \
+    # --task_based_stratified_sampled_shards \

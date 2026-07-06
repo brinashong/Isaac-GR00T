@@ -95,6 +95,8 @@ class DataConfig:
     video_backend: str = "torchcodec"
 
     # Custom data configs
-    # paraphrase_from_gazette: bool = False
-    paraphrase_gazette: dict[str, List[str]] = None     # Only if paraphrase_from_gazette set to True
+    paraphrase_from_gazette: bool = False               # If True, paraphrase task label from gazette
+    paraphrase_gazette: dict[str, List[str]] = None     # Only if paraphrase_from_gazette set to True. Gazette dict to paraphrase to
+    canonicalize_list: dict[str, str] = None      # Only if task_based_stratified_sampled_shards set to True. Gazette dict to sum up paraphrased versions of a task
     primary_tasks: List[str] = None                     # The main tasks for stratified sampling
+    task_based_stratified_sampled_shards: bool = False  # If True, makes assignment of shards task-aware when sampling episodes

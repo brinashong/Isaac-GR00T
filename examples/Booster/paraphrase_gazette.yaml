@@ -1,7 +1,14 @@
 ### Primary tasks for stratified sampling of shards
 primary_tasks: ["Wave", "Salute", "Shake hands", "Place hands on head"]
 
-### Gazette for paraphrasing task label to other variants
+### If collected tasks have varied labels for the same actions, canonicalize the paraphrases into "primary_tasks"
+# If contain many subtasks in an episode, advise NOT to use stratified_shards
+canonicalize_list: {
+    "Stop": "Idle",
+    "Do nothing": "Idle",
+}
+
+### Gazette for paraphrasing task label to other variants during get_shard() step in sharded_mixture_dataset.py
 # Add on to lists
 paraphrase_gazette: {
     "Wave": ["Wave", "Can you wave", "Wave your hand", "Wave hello", "Greet by waving"],

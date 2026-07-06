@@ -71,8 +71,11 @@ class DatasetFactory:
                     episode_sampling_rate=self.config.data.episode_sampling_rate,
                     seed=self.config.data.seed,
                     allow_padding=self.config.data.allow_padding,
+                    paraphrase_from_gazette=self.config.data.paraphrase_from_gazette,
                     paraphrase_gazette=self.config.data.paraphrase_gazette,
+                    task_based_stratified_sampled_shards=self.config.data.task_based_stratified_sampled_shards,
                     primary_tasks=self.config.data.primary_tasks,
+                    canonicalize_list=self.config.data.canonicalize_list,
                 )
                 datasets.append(dataset)
             dataset_lengths = np.array([len(dataset) for dataset in datasets])

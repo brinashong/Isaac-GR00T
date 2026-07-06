@@ -96,14 +96,14 @@ if __name__ == "__main__":
     # )
 
     # load gazette for paraphrasing
-    if ft_config.paraphrase_from_gazette:
-        if ft_config.gazette_path:
-            with open(ft_config.gazette_path, 'r') as file:
-                    gazette = yaml.safe_load(file)
-                    config.data.paraphrase_gazette = gazette.get("paraphrase_gazette", None)
-                    config.data.primary_tasks = gazette.get("primary_tasks", None)
-        else:
-            raise FileNotFoundError(f"Paraphrase gazette path does not exist: {ft_config.gazette_path}")
+    if ft_config.gazette_path:
+        with open(ft_config.gazette_path, 'r') as file:
+                gazette = yaml.safe_load(file)
+                config.data.paraphrase_gazette = gazette.get("paraphrase_gazette", None)
+                config.data.canonicalize_list = gazette.get("canonicalize_list", None)
+                config.data.primary_tasks = gazette.get("primary_tasks", None)
+    else:
+        raise FileNotFoundError(f"Paraphrase gazette path does not exist: {ft_config.gazette_path}")
 
 
     config.load_config_path = None
@@ -156,7 +156,8 @@ if __name__ == "__main__":
     config.data.shard_size = ft_config.shard_size
     config.data.episode_sampling_rate = ft_config.episode_sampling_rate
     config.data.num_shards_per_epoch = ft_config.num_shards_per_epoch
-    # config.data.paraphrase_from_gazette = ft_config.paraphrase_from_gazette
+    config.data.paraphrase_from_gazette = ft_config.paraphrase_from_gazette
+    config.data.task_based_stratified_sampled_shards = ft_config.task_based_stratified_sampled_shards
 
     config.training.save_only_model = ft_config.save_only_model
     config.training.skip_weight_loading = ft_config.skip_weight_loading

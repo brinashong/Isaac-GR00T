@@ -27,6 +27,8 @@ from gr00t.data.embodiment_tags import EmbodimentTag
 from gr00t.policy import BasePolicy
 from gr00t.policy.gr00t_policy import Gr00tPolicy
 from gr00t.policy.server_client import PolicyClient
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd

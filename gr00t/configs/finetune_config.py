@@ -183,6 +183,10 @@ class FinetuneConfig:
     # Custom data configs
     paraphrase_from_gazette: bool = False
     """Enable paraphrasing from gazette for language semantics conditioning."""
+    
     gazette_path: str | None = None     # Only if paraphrase_from_gazette set to True
     """Will populate gazette by loading from path if 'paraphrase_from_gazette' set to True'."""
+    
+    task_based_stratified_sampled_shards: bool = False
+    """If True, makes assignment of shards task-aware when sampling episodes"""
 
