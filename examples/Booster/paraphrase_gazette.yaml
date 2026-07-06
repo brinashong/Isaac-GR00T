@@ -1,0 +1,13 @@
+### Primary tasks for stratified sampling of shards
+primary_tasks: ["Wave", "Salute", "Shake hands", "Place hands on head"]
+
+### Gazette for paraphrasing task label to other variants
+# Add on to lists
+paraphrase_gazette: {
+    "Wave": ["Wave", "Can you wave", "Wave your hand", "Wave hello", "Greet by waving"],
+    "Salute": ["Salute", "Give a salute", "Raise your hand in salute"],
+    "Shake hands": ["Shake hands", "Offer a handshake", "Give me a handshake", "Extend your hand to shake"],
+    "Place hands on head": ["Place hands on head", "Put your hands on your head", "Touch your head with both hands"],
+    "Idle": ["Idle", "Stop", "Do nothing", "Stand still", "Return to neutral"],
+}
+

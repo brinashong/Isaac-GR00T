@@ -31,6 +31,7 @@ def extract_step_data(
     modality_configs: dict[str, ModalityConfig],
     embodiment_tag: EmbodimentTag,
     allow_padding: bool = False,
+    paraphrase_gazette: dict[str, list[str]] | None = None,
 ) -> VLAStepData:
     step_data = {}
 
@@ -68,6 +69,9 @@ def extract_step_data(
     language_data = step_data.get("language", {})
     assert len(language_data) == 1, f"Expected 1 language, got {len(language_data)}"
     text = language_data[list(language_data.keys())[0]][0]
+
+    variants = paraphrase_gazette.get(text, [text])
+    text = variants[np.random.randint(len(variants))]
 
     vla_step_data = VLAStepData(
         images=video_data,
@@ -140,6 +144,8 @@ class ShardedSingleStepDataset(ShardedDataset):
         episode_sampling_rate: float = 0.1,
         seed: int = 42,
         allow_padding: bool = False,
+        paraphrase_gazette: dict[str, list[str]] | None = None,
+        primary_tasks: list[str] | None = None,
     ):
         """Initialize single-step dataset with sharding configuration."""
         super().__init__(dataset_path)
@@ -151,6 +157,12 @@ class ShardedSingleStepDataset(ShardedDataset):
         self.episode_sampling_rate = episode_sampling_rate
         self.seed = seed
         self.allow_padding = allow_padding
+        self.paraphrase_gazette = paraphrase_gazette
+        if self.paraphrase_gazette: 
+            print("Initialized gazette to paraphrase task instructions input.")
+        else:
+            print("No additional paraphrasing step for text extraction.")
+        self.primary_tasks = primary_tasks
         self.processor = None
         self.rng = np.random.default_rng(seed)
         action_delta_indices = modality_configs["action"].delta_indices
@@ -255,6 +267,7 @@ class ShardedSingleStepDataset(ShardedDataset):
             self.modality_configs,
             self.embodiment_tag,
             self.allow_padding,
+            self.paraphrase_gazette,
         )
         # Apply processor to convert to model inputs
         messages = [{"type": MessageType.EPISODE_STEP.value, "content": vla_step_data}]
