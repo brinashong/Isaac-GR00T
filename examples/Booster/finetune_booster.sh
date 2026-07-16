@@ -2,11 +2,11 @@ set -x -e
 
 export DATASET_PATH="examples/Booster/meet-and-greet_50Hz_4Jun,examples/Booster/meet-and-greet_1600eps_sim_50Hz_19Jun" # meet-and-greet
 export OUTPUT_DIR=/mnt/ssd-server/eai_dataset/groot_models/wave-n1d7
-export EXPERIMENT_NAME=exp18-meet-and-greet-absolute-action-conditioning-tune-loss-50Hz-6Jul
+export EXPERIMENT_NAME=exp20-meet-and-greet-absolute-action-conditioning-tune-loss-50Hz-8Jul
 export WANDB_ENTITY="groot-sde"
 
 export NUM_GPUS=1
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=0
 
 # CUDA_VISIBLE_DEVICES=2 python3 \
 #--base_model_path /mnt/ssd-server/eai_dataset/groot_models/meet-and-greet/exp36-meet-and-greet/checkpoint-20000 \

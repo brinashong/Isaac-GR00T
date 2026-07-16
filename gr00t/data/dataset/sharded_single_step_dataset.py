@@ -15,6 +15,7 @@
 
 from pathlib import Path
 from typing import Any
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -241,6 +242,9 @@ class ShardedSingleStepDataset(ShardedDataset):
             sharded_episodes = [[] for _ in range(num_shards)]
             shard_lengths = np.zeros(num_shards, dtype=int)
             
+            # Check task distribution within episode_tasks list
+            print(f"Distribution of tasks: {Counter(episode_tasks)}")
+
             # Per-(shard, task) step counts for stratified greedy assignment
             tasks = sorted(set(episode_tasks))
             task_id = {t: i for i, t in enumerate(tasks)}
@@ -266,6 +270,10 @@ class ShardedSingleStepDataset(ShardedDataset):
                 sharded_episodes[shard_index].append((ep_idx, split))
                 shard_lengths[shard_index] += len(split)
                 shard_task_lengths[shard_index, task_id[task]] += len(split)
+
+            # if stratification works, std per task should be 0.01 - 0.02. Default sharding (in else below) would be ~0.08 - 0.10
+            frac = shard_task_lengths / shard_lengths[:, None]
+            print(f"Per- stratified shard task fractions - mean: {frac.mean(axis=0)}, std: {frac.std(axis=0)}, min: {frac.min(axis=0)}")
 
         else: # default
             shuffled_episode_indices = self.rng.permutation(len(self.episode_loader.episode_lengths))
